@@ -3,11 +3,15 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+const passport = require("passport");
 
 // import the dotenv module
 require("dotenv").config();
 // connect to the DB after the config vars are processed
 require("./config/database");
+// require config/passport to use LocalStrategy
+require("./config/passport");
+
 const authRouter = require("./routes/auth");
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
@@ -25,8 +29,11 @@ app.use(cookieParser());
 app.use(express.static(__dirname + "/node_modules/bootstrap/dist"));
 app.use(express.static(path.join(__dirname, "public")));
 
+// passport middleware
+app.use(passport.initialize());
+
+app.use("/auth", authRouter);
 app.use("/", indexRouter);
-app.use("/", authRouter);
 app.use("/users", usersRouter);
 
 // catch 404 and forward to error handler
