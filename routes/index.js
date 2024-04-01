@@ -6,4 +6,8 @@ router.get("/", function (req, res, next) {
     res.render("index", { title: "Lunch Krunch | Home" });
 });
 
+router.get("/login", function (req, res, next) {
+    res.render("auth/login", { title: "Lunch Krunch | Login" });
+});
+
 module.exports = router;
