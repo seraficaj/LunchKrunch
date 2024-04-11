@@ -5,8 +5,8 @@ const mongoose = require("mongoose");
 const User = require("../models/User");
 
 /* GET users listing. */
-router.get("/", function (req, res, next) {
-    res.send("respond with a resource");
+router.get("/create", function (req, res, next) {
+    res.render("signup");
 });
 
 router.post("/create", async function (req, res, next) {
