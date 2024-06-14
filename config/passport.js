@@ -1,50 +1,44 @@
 // config/passport.js
 
-const express = require("express");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
-const crypto = require("crypto");
-const db = require("./database");
+const User = require("../models/User");
+
+// Serialize user
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+// Deserialize user
+passport.deserializeUser((id, done) => {
+    User.findById(id, (err, user) => {
+        done(err, user);
+    });
+});
 
 passport.use(
-    new LocalStrategy(function verify(username, password, cb) {
-        db.get(
-            "SELECT * FROM users WHERE username = ?",
-            [username],
-            function (err, row) {
-                if (err) {
-                    return cb(err);
-                }
-                if (!row) {
-                    return cb(null, false, {
-                        message: "Incorrect username or password.",
+    new LocalStrategy({ usernameField: "email" }, (email, password, done) => {
+        // Match user
+        User.findOne({ email: email })
+            .then((user) => {
+                if (!user) {
+                    return done(null, false, {
+                        message: "That email is not registered",
                     });
                 }
 
-                crypto.pbkdf2(
-                    password,
-                    row.salt,
-                    310000,
-                    32,
-                    "sha256",
-                    function (err, hashedPassword) {
-                        if (err) {
-                            return cb(err);
-                        }
-                        if (
-                            !crypto.timingSafeEqual(
-                                row.hashed_password,
-                                hashedPassword
-                            )
-                        ) {
-                            return cb(null, false, {
-                                message: "Incorrect username or password.",
-                            });
-                        }
-                        return cb(null, row);
+                // Match password
+                user.comparePassword(password, (err, isMatch) => {
+                    if (err) throw err;
+                    if (isMatch) {
+                        return done(null, user);
+                    } else {
+                        return done(null, false, {
+                            message: "Password incorrect",
+                        });
                     }
-                );
-            }
-        );
+                });
+            })
+            .catch((err) => done(err));
     })
 );
